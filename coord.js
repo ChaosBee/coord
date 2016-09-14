@@ -100,6 +100,7 @@
             return this.bd_encrypt(temp['lat'], temp['lon']);
         },
 
+        /* deprecated mercator_encrypt/mercator_decrypt 两个方法没有验证, 用百度坐标转换相差挺远, 故用百度原生方法mercator.js替换*/
         //WGS-84 to Web mercator
         //mercatorLat -> y mercatorLon -> x
         mercator_encrypt: function (wgsLat, wgsLon) {
