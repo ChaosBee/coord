@@ -82,8 +82,8 @@
 
         lngLatToMercator: function (point) {
             var lng_lat, mc;
-            point.lng = getLoop(point.lng, -180, 180);
-            point.lat = getRange(point.lat, -74, 74);
+            point.lng = wrap(point.lng, -180, 180);
+            point.lat = clamp(point.lat, -74, 74);
             lng_lat = {
                 lng: point.lng,
                 lat: point.lat
@@ -110,24 +110,22 @@
             return lng_lat
         },
 
-        getLoop: function (lng, a, b) {
-            while (lng > b) {
-                lng -= b - a
-            }
-            while (lng < a) {
-                lng += b - a
-            }
-            return lng
+        wrap: function (a, min, max) {
+            var d = max - min
+            var b = a - min
+            var fq = b / d
+            var r = (Math.floor(fq) - fq) * d
+            return min + r
         },
 
-        getRange: function (lat, a, b) {
-            if (a != null) {
-                lat = Math.max(lat, a)
+        clamp: function (a, min, max) {
+            if (min != null) {
+                a = Math.max(a, min)
             }
-            if (b != null) {
-                lat = Math.min(lat, b)
+            if (max != null) {
+                a = Math.min(a, max)
             }
-            return lat
+            return a
         },
 
         convertor: function (point, mc) {
