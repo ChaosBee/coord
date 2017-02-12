@@ -146,12 +146,12 @@
         },
         bd_merc_decode_test: function (bdmLat, bdmLon) {
             var factor = this.bdinternal__merc_lat_factor()
-            var guess = this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
+            var guess = this.mercator_decrypt(bdmLat / factor, bdmLon, 20037726.372144807)
             // too lazy to write "for"
             factor = this.bdinternal__merc_lat_factor(guess.lat)
-            guess = this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
+            guess = this.mercator_decrypt(bdmLat / factor, bdmLon, 20037726.372144807)
             factor = this.bdinternal__merc_lat_factor(guess.lat)
-            return this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
+            return this.mercator_decrypt(bdmLat / factor, bdmLon, 20037726.372144807)
         },
         // two point's distance
         distance: function (latA, lonA, latB, lonB) {
