@@ -103,10 +103,9 @@
         /* deprecated mercator_encrypt/mercator_decrypt 两个方法没有验证, 用百度坐标转换相差挺远, 故用百度原生方法mercator.js替换*/
         //WGS-84 to Web (Google/Bing; Spherical) mercator
         //mercatorLat -> y mercatorLon -> x
-        mercator_encrypt: function (wgsLat, wgsLon, rat = 20037508.34) {
+        mercator_encrypt: function (wgsLat, wgsLon, rat = 20037508.34, corrlat = 1) {
             var x = wgsLon * rat / 180.;
-            var y = Math.log(Math.tan((90. + wgsLat) * this.PI / 360.)) / (this.PI / 180.);
-            y = y * rat / 180.;
+            var y = Math.log(Math.tan((90. + wgsLat) * this.PI / 360.)) / (this.PI) * rat * corrlat;
             return {'lat': y, 'lon': x};
             /*
              if ((Math.abs(wgsLon) > 180 || Math.abs(wgsLat) > 90))
@@ -117,12 +116,14 @@
              return {'lat' : y, 'lon' : x};
              //*/
         },
-        bd_merc_encode_test: function (bdLat, bdLon) { return this.mercator_encrypt(bdLat, bdLon, 20037726.372144807) },
+        bd_merc_encode_test: function (bdLat, bdLon) {
+            return this.mercator_encrypt(bdLat, bdLon, 20037726.372144807, 0.99553200024739)
+        },
         // Web mercator to WGS-84
         // mercatorLat -> y mercatorLon -> x
-        mercator_decrypt: function (mercatorLat, mercatorLon, rat = 20037508.34) {
+        mercator_decrypt: function (mercatorLat, mercatorLon, rat = 20037508.34, corrlat = 1) {
             var x = mercatorLon / rat * 180.;
-            var y = mercatorLat / rat * 180.;
+            var y = mercatorLat / rat / corrlat * 180.;
             y = 180 / this.PI * (2 * Math.atan(Math.exp(y * this.PI / 180.)) - this.PI / 2);
             return {'lat': y, 'lon': x};
             /*
@@ -136,7 +137,9 @@
              return {'lat' : y, 'lon' : x};
              //*/
         },
-        bd_merc_decode_test: function (bdmLat, bdmLon) { return this.mercator_decrypt(bdmLat, bdmLon, 20037726.372144807) }
+        bd_merc_decode_test: function (bdmLat, bdmLon) {
+            return this.mercator_decrypt(bdmLat, bdmLon, 20037726.372144807, 0.99553200024739)
+        },
         // two point's distance
         distance: function (latA, lonA, latB, lonB) {
             var earthR = 6371000.;
