@@ -103,9 +103,9 @@
         /* deprecated mercator_encrypt/mercator_decrypt 两个方法没有验证, 用百度坐标转换相差挺远, 故用百度原生方法mercator.js替换*/
         //WGS-84 to Web (Google/Bing; Spherical) mercator
         //mercatorLat -> y mercatorLon -> x
-        mercator_encrypt: function (wgsLat, wgsLon, rat = 20037508.34, corrlat = 1) {
+        mercator_encrypt: function (wgsLat, wgsLon, rat = 20037508.34) {
             var x = wgsLon * rat / 180.;
-            var y = Math.log(Math.tan((90. + wgsLat) * this.PI / 360.)) / (this.PI) * rat * corrlat;
+            var y = Math.log(Math.tan((90. + wgsLat) * this.PI / 360.)) / (this.PI) * rat;
             return {'lat': y, 'lon': x};
             /*
              if ((Math.abs(wgsLon) > 180 || Math.abs(wgsLat) > 90))
@@ -116,15 +116,22 @@
              return {'lat' : y, 'lon' : x};
              //*/
         },
+        bdinternal__merc_lat_factor = function(lat) {
+            return lat === undefined?
+                    0.99553200024739:
+                    6.32801629192256e-7 * Math.pow(lat, 2) + 0.993256068032876
+        }
         bd_merc_encode_test: function (bdLat, bdLon) {
-            return this.mercator_encrypt(bdLat, bdLon, 20037726.372144807, 0.99553200024739)
+            var ret = this.mercator_encrypt(bdLat, bdLon, 20037726.372144807)
+            ret.lat *= this.bdinternal__merc_lat_factor(bdLat)
+            return ret
         },
         // Web mercator to WGS-84
         // mercatorLat -> y mercatorLon -> x
-        mercator_decrypt: function (mercatorLat, mercatorLon, rat = 20037508.34, corrlat = 1) {
+        mercator_decrypt: function (mercatorLat, mercatorLon, rat = 20037508.34) {
             var x = mercatorLon / rat * 180.;
-            var y = mercatorLat / rat / corrlat * 180.;
-            y = 180 / this.PI * (2 * Math.atan(Math.exp(y * this.PI / 180.)) - this.PI / 2);
+            var y = mercatorLat / rat;
+            y = 180 / this.PI * (2 * Math.atan(Math.exp(y * this.PI)) - this.PI / 2);
             return {'lat': y, 'lon': x};
             /*
              if (Math.abs(mercatorLon) < 180 && Math.abs(mercatorLat) < 90)
@@ -138,7 +145,13 @@
              //*/
         },
         bd_merc_decode_test: function (bdmLat, bdmLon) {
-            return this.mercator_decrypt(bdmLat, bdmLon, 20037726.372144807, 0.99553200024739)
+            var factor = this.bdinternal__merc_lat_factor()
+            var guess = this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
+            // too lazy to write "for"
+            factor = this.bdinternal__merc_lat_factor(guess.lat)
+            guess = this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
+            factor = this.bdinternal__merc_lat_factor(guess.lat)
+            return this.mercator_decrypt(bdmLat, bdmLon / factor, 20037726.372144807)
         },
         // two point's distance
         distance: function (latA, lonA, latB, lonB) {
